@@ -1,14 +1,11 @@
 # Project
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+This project mainly exists to be able to use a more recent version of google protobuf within
+the Spark environment. The protobuf version that comes embedded in Spark is old, so this project
+package is used to shade the newer protobuf version to avoid version conflicts. It also includes
+the auto-generated OnnxML.java file for interacting with ONNX models at the protobuf level.
 
-As the maintainer of this project, please make a few updates:
-
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+Projects can reference this package to use a shaded version of the com.google.protobuf package for OnnxML.
 
 ## Contributing
 
