@@ -55,22 +55,22 @@ lazy val root = (project in file("."))
   ): _*)
 
 ThisBuild / sonatypeProjectHosting := Some(
-  GitHubHosting("Microsoft", "SynapseML", "mmlspark-support@microsoft.com"))
-ThisBuild / homepage := Some(url("https://github.com/Microsoft/SynapseML"))
+  GitHubHosting("Microsoft", "onnx-protobuf", "mmlspark-support@microsoft.com"))
+ThisBuild / homepage := Some(url("https://github.com/microsoft/onnx-protobuf"))
 ThisBuild / scmInfo := Some(
   ScmInfo(
-    url("https://github.com/Microsoft/SynapseML"),
-    "scm:git@github.com:Azure/SynapseML.git"
+    url("https://github.com/microsoft/onnx-protobuf"),
+    "scm:git@github.com:microsoft/onnx-protobuf.git"
   )
 )
 ThisBuild / developers := List(
-  Developer("mhamilton723", "Mark Hamilton",
-    "synapseml-support@microsoft.com", url("https://github.com/mhamilton723")),
   Developer("svotaw", "Scott Votaw",
-    "synapseml-support@microsoft.com", url("https://github.com/svotaw"))
+    "synapseml-support@microsoft.com", url("https://github.com/svotaw")),
+  Developer("mhamilton723", "Mark Hamilton",
+    "synapseml-support@microsoft.com", url("https://github.com/mhamilton723"))
 )
 
-ThisBuild / licenses += ("MIT", url("https://github.com/Microsoft/SynapseML/blob/master/LICENSE"))
+ThisBuild / licenses += ("MIT", url("https://github.com/microsoft/onnx-protobuf/LICENSE.md"))
 
 ThisBuild / credentials += Credentials("Sonatype Nexus Repository Manager",
   "oss.sonatype.org",
