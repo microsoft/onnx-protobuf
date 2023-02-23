@@ -37,7 +37,7 @@ val settings = Seq(
   assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false),
   assembly / artifact := {
     val art = (assembly / artifact).value
-    art.withClassifier(Some("assembly"))
+    art.withClassifier(Some(""))
   },
   addArtifact(assembly / artifact, assembly)
 )
