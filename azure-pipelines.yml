@@ -10,10 +10,66 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'SynapseML Build'
+    keyVaultName: mmlspark-keys
+- task: JavaToolInstaller@0
+  inputs:
+    versionSpec: '8'
+    jdkArchitectureOption: 'x64'
+    jdkSourceOption: 'PreInstalled'
+- bash: |
+    sbt publishLocalSigned
+    
+  env:
+    NEXUS-UN: $(nexus-un)
+    NEXUS-PW: $(nexus-pw)
+    PGP-PRIVATE: $(pgp-private)
+    PGP-PUBLIC: $(pgp-public)
+    PGP-PW: $(pgp-pw)
+  displayName: 'publish local signed'
+- task: EsrpCodeSigning@3
+  inputs:
+    ConnectedServiceName: 'DataScienceESRPSign'
+    FolderPath: '/home/vsts/.ivy2/local/com.microsoft.azure/'
+    Pattern: '*.jar'
+    signConfigType: 'inlineSignParams'
+    inlineOperation: |
+      [
+        {
+          "KeyCode" : "CP-447347-Java",
+          "OperationCode" : "JavaSign",
+          "Parameters" : {
+              "SigAlg" : "SHA256withRSA",
+              "Timestamp" : "-tsa http://sha256timestamp.ws.digicert.com/sha256/timestamp"
+          },
+          "ToolName" : "sign",
+          "ToolVersion" : "1.0"
+        },
+        {
+            "KeyCode" : "CP-447347-Java",
+            "OperationCode" : "JavaVerify",
+            "Parameters" : {},
+            "ToolName" : "sign",
+            "ToolVersion" : "1.0"
+        }
+      ]
+    SessionTimeout: '60'
+    MaxConcurrency: '50'
+    MaxRetryAttempts: '5'
+  displayName: 'CodeSign First Party'
+  
+# - task: EsrpRelease@3
+#   condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+#   inputs:
+#     ConnectedServiceName: 'DataScienceESRPRelease'
+#     Intent: 'PackageDistribution'
+#     ContentType: 'PyPI'
+#     PackageLocation: '$(System.DefaultWorkingDirectory)/SynapseML-Enya/dist'
+#     Owners: 'admukund@microsoft.com,richwyd@microsoft.com,taniaarya@microsoft.com,alsavelv@microsoft.com,marcozo@microsoft.com,romanbat@microsoft.com'
+#     Approvers: 'romanbat@microsoft.com,markus.weimer@microsoft.com,negust@microsoft.com'
+#     ServiceEndpointUrl: 'https://api.esrp.microsoft.com'
+#     MainPublisher: 'synapseml'
+#     DomainTenantId: '72f988bf-86f1-41af-91ab-2d7cd011db47'
+#   displayName: 'ESRP Publish Semantic Link'

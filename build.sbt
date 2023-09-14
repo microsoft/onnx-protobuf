@@ -41,7 +41,6 @@ val settings = Seq(
   },
   addArtifact(assembly / artifact, assembly)
 )
-ThisBuild / publishMavenStyle := true
 
 lazy val root = (project in file("."))
   .settings(settings ++ Seq(
@@ -67,7 +66,9 @@ ThisBuild / developers := List(
   Developer("svotaw", "Scott Votaw",
     "synapseml-support@microsoft.com", url("https://github.com/svotaw")),
   Developer("mhamilton723", "Mark Hamilton",
-    "synapseml-support@microsoft.com", url("https://github.com/mhamilton723"))
+    "synapseml-support@microsoft.com", url("https://github.com/mhamilton723")),
+  Developer("BrendanWalsh", "Brendan Walsh",
+    "synapseml-support@microsoft.com", url("https://github.com/BrendanWalsh")),
 )
 
 ThisBuild / licenses += ("MIT", url("https://github.com/microsoft/onnx-protobuf/LICENSE.md"))
@@ -98,3 +99,4 @@ ThisBuild / publishTo := sonatypePublishToBundle.value
 
 ThisBuild / dynverSonatypeSnapshots := true
 ThisBuild / dynverSeparator := "-"
+ThisBuild / versionScheme := Some("semver-spec")

@@ -13,7 +13,7 @@ repository https://oss.sonatype.org/content/repositories/snapshots/.
 ### Release
 - We need Gpg to re-sign the jar file as saving the assembly jar as a regular jar breaks the file signature.
   - Please install Gpg and generate the key using the instructions documented [here](https://central.sonatype.org/publish/requirements/gpg/#installing-gnupg).
-  - Credentials can be found in SynapseML key vault as documented above. `pgp-pw` from key-vault is the paraphrase used in the gpg steps.
+  - Credentials can be found in SynapseML key vault as documented above. `pgp-pw` from key-vault is the passphrase used in the gpg steps.
 - To publish the release packages to Sonatype, first set the tag of the current commit to a version.
   - e.g., `git tag -a v0.9.3 -m "Initial checkin"`
 - Login to az cli to fetch the credentials using the command: `az login`
