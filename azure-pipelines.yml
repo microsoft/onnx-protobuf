@@ -9,6 +9,9 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+
 steps:
 - task: AzureKeyVault@1
   inputs:
@@ -60,16 +63,15 @@ steps:
     MaxRetryAttempts: '5'
   displayName: 'CodeSign First Party'
   
-# - task: EsrpRelease@3
-#   condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-#   inputs:
-#     ConnectedServiceName: 'DataScienceESRPRelease'
-#     Intent: 'PackageDistribution'
-#     ContentType: 'PyPI'
-#     PackageLocation: '$(System.DefaultWorkingDirectory)/SynapseML-Enya/dist'
-#     Owners: 'admukund@microsoft.com,richwyd@microsoft.com,taniaarya@microsoft.com,alsavelv@microsoft.com,marcozo@microsoft.com,romanbat@microsoft.com'
-#     Approvers: 'romanbat@microsoft.com,markus.weimer@microsoft.com,negust@microsoft.com'
-#     ServiceEndpointUrl: 'https://api.esrp.microsoft.com'
-#     MainPublisher: 'synapseml'
-#     DomainTenantId: '72f988bf-86f1-41af-91ab-2d7cd011db47'
-#   displayName: 'ESRP Publish Semantic Link'
+- task: EsrpRelease@3
+  inputs:
+    ConnectedServiceName: 'DataScienceESRPRelease'
+    Intent: 'PackageDistribution'
+    ContentType: 'Maven'
+    PackageLocation: '/home/vsts/.ivy2/local/com.microsoft.azure/'
+    Owners: 'admukund@microsoft.com,richwyd@microsoft.com,taniaarya@microsoft.com,alsavelv@microsoft.com,marcozo@microsoft.com,romanbat@microsoft.com'
+    Approvers: 'romanbat@microsoft.com,markus.weimer@microsoft.com,negust@microsoft.com'
+    ServiceEndpointUrl: 'https://api.esrp.microsoft.com'
+    MainPublisher: 'synapseml'
+    DomainTenantId: '72f988bf-86f1-41af-91ab-2d7cd011db47'
+  displayName: 'ESRP Publish Package'
