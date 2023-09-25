@@ -46,9 +46,19 @@ steps:
     sudo find /tmp -name 'secret*.asc' -print | sort | head -n 1 | xargs gpg --batch --yes --passphrase-file /tmp/keypw*.txt  --import
     cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12
     rm onnx-protobuf_2.12-*.jar.asc
+    rm onnx-protobuf_2.12-*.jar.asc.sha1
+    rm onnx-protobuf_2.12-*.jar.asc.md5
+
     echo "HERE1"
     ls
+    
     gpg --batch --yes --pinentry-mode loopback --passphrase-file /tmp/keypw*.txt -ab onnx-protobuf_2.12-*.jar
+    for file in onnx-protobuf_2.12-*.jar.asc
+    do
+      sha1sum "$file" > "$file.sha1"
+      md5sum "$file" > "$file.md5"
+    done
+
     echo "HERE2"
     ls
 
