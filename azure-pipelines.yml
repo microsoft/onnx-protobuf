@@ -23,7 +23,7 @@ steps:
     jdkArchitectureOption: 'x64'
     jdkSourceOption: 'PreInstalled'
 - bash: |
-    sbt publishLocalSigned
+    sbt publishLocal
   env:
     NEXUS-UN: $(nexus-un)
     NEXUS-PW: $(nexus-pw)
