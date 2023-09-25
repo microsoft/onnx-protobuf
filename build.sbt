@@ -1,10 +1,11 @@
+import com.typesafe.sbt.pgp.PgpKeys.publishLocalSigned
 import sbtassembly.AssemblyKeys.assembly
 import sbtassembly.AssemblyPlugin.autoImport.ShadeRule
-import xerial.sbt.Sonatype._
+import xerial.sbt.Sonatype.*
 
 import java.io.{File, PrintWriter}
 import scala.xml.transform.{RewriteRule, RuleTransformer}
-import scala.xml.{Node => XmlNode, NodeSeq => XmlNodeSeq, _}
+import scala.xml.{Node as XmlNode, NodeSeq as XmlNodeSeq, *}
 
 name := "onnx-protobuf"
 ThisBuild / organization := "com.microsoft.azure"
@@ -78,7 +79,15 @@ ThisBuild / credentials += Credentials("Sonatype Nexus Repository Manager",
   Secrets.nexusUsername,
   Secrets.nexusPassword)
 
-pgpPassphrase := Some(Secrets.pgpPassword.toCharArray)
+pgpPassphrase := {
+  val pw = Secrets.pgpPassword
+  val temp = File.createTempFile("keypw", ".txt")
+  new PrintWriter(temp) {
+    write(pw)
+    close()
+  }
+  Some(pw.toCharArray)
+}
 pgpSecretRing := {
   val temp = File.createTempFile("secret", ".asc")
   new PrintWriter(temp) {

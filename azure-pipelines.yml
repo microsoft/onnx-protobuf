@@ -42,8 +42,11 @@ steps:
     cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12
     find . -mindepth 2 -type f -exec mv -t . --backup=numbered '{}' +
     find . -mindepth 1 -type d -empty -delete
-    cd *
-    gpg -ab onnx-protobuf_2.12-*.jar
+    cd /tmp
+    sudo find /tmp -name 'secret*.asc' -print | sort | head -n 1 | xargs gpg --batch --yes --passphrase-file /tmp/keypw*.txt  --import
+    cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12/*
+    gpg --batch --yes --pinentry-mode loopback --passphrase-file /tmp/keypw*.txt -ab onnx-protobuf_2.12-*.jar
+
   #- task: EsrpCodeSigning@3
 #  inputs:
 #    ConnectedServiceName: 'DataScienceESRPSign'
