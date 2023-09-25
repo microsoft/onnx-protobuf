@@ -1,10 +1,10 @@
 import sbtassembly.AssemblyKeys.assembly
 import sbtassembly.AssemblyPlugin.autoImport.ShadeRule
-import xerial.sbt.Sonatype.*
+import xerial.sbt.Sonatype._
 
 import java.io.{File, PrintWriter}
 import scala.xml.transform.{RewriteRule, RuleTransformer}
-import scala.xml.{Node as XmlNode, NodeSeq as XmlNodeSeq, *}
+import scala.xml.{Node => XmlNode, NodeSeq => XmlNodeSeq, _}
 
 name := "onnx-protobuf"
 ThisBuild / organization := "com.microsoft.azure"
