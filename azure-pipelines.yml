@@ -32,12 +32,13 @@ steps:
     PGP-PW: $(pgp-pw)
   displayName: 'publish local signed'
 - bash: |
-    cd /home/vsts/.ivy2/local/com.microsoft.azure/
-    tree .
+    cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12
+    find . -mindepth 2 -type f -exec mv -t . --backup=numbered '{}' +
+    find . -mindepth 1 -type d -empty -delete
 - task: EsrpCodeSigning@3
   inputs:
     ConnectedServiceName: 'DataScienceESRPSign'
-    FolderPath: '/home/vsts/.ivy2/local/com.microsoft.azure/'
+    FolderPath: '/home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12'
     Pattern: '*.jar'
     signConfigType: 'inlineSignParams'
     inlineOperation: |
@@ -70,7 +71,7 @@ steps:
     ConnectedServiceName: 'DataScienceESRPRelease'
     Intent: 'PackageDistribution'
     ContentType: 'Maven'
-    PackageLocation: '/home/vsts/.ivy2/local/com.microsoft.azure/'
+    PackageLocation: '/home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12'
     Owners: 'admukund@microsoft.com,richwyd@microsoft.com,taniaarya@microsoft.com,alsavelv@microsoft.com,marcozo@microsoft.com,romanbat@microsoft.com'
     Approvers: 'romanbat@microsoft.com,markus.weimer@microsoft.com,negust@microsoft.com'
     ServiceEndpointUrl: 'https://api.esrp.microsoft.com'
