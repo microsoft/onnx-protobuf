@@ -1,4 +1,3 @@
-import com.typesafe.sbt.pgp.PgpKeys.publishLocalSigned
 import sbtassembly.AssemblyKeys.assembly
 import sbtassembly.AssemblyPlugin.autoImport.ShadeRule
 import xerial.sbt.Sonatype.*
