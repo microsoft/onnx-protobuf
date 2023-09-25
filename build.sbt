@@ -96,7 +96,7 @@ pgpPublicRing := {
   temp
 }
 ThisBuild / publishTo := sonatypePublishToBundle.value
-
+//ThisBuild / publishMavenStyle := true
 ThisBuild / dynverSonatypeSnapshots := true
 ThisBuild / dynverSeparator := "-"
 ThisBuild / versionScheme := Some("semver-spec")

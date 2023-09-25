@@ -24,7 +24,6 @@ steps:
     jdkSourceOption: 'PreInstalled'
 - bash: |
     sbt publishLocalSigned
-    
   env:
     NEXUS-UN: $(nexus-un)
     NEXUS-PW: $(nexus-pw)
@@ -32,6 +31,9 @@ steps:
     PGP-PUBLIC: $(pgp-public)
     PGP-PW: $(pgp-pw)
   displayName: 'publish local signed'
+- bash: |
+    cd /home/vsts/.ivy2/local/com.microsoft.azure/
+    tree .
 - task: EsrpCodeSigning@3
   inputs:
     ConnectedServiceName: 'DataScienceESRPSign'
