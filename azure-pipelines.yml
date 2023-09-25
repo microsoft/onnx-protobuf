@@ -42,7 +42,9 @@ steps:
     cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12
     find . -mindepth 2 -type f -exec mv -t . --backup=numbered '{}' +
     find . -mindepth 1 -type d -empty -delete
-#- task: EsrpCodeSigning@3
+    cd *
+    gpg -ab onnx-protobuf_2.12-*.jar
+  #- task: EsrpCodeSigning@3
 #  inputs:
 #    ConnectedServiceName: 'DataScienceESRPSign'
 #    FolderPath: '/home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12'
