@@ -31,7 +31,14 @@ steps:
     PGP-PUBLIC: $(pgp-public)
     PGP-PW: $(pgp-pw)
   displayName: 'publish local signed'
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
 - bash: |
+    python -m pip install --upgrade pip
+    pip install shutil
+    python prepare_jar.py
     cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12
     find . -mindepth 2 -type f -exec mv -t . --backup=numbered '{}' +
     find . -mindepth 1 -type d -empty -delete

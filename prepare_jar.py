@@ -1,35 +1,60 @@
 import os
 import shutil
 
-root_dir = "~/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12"
+root_dir = "/home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12"
+
+
+def flatten_dir(top_dir):
+    # Collect directories to delete
+    directories_to_delete = []
+
+    # Walk through all subdirectories
+    for foldername, subfolders, filenames in os.walk(top_dir, topdown=False):
+
+        # If we are not in the top-level directory, move files to the top-level directory
+        if foldername != top_dir:
+            for filename in filenames:
+                source = os.path.join(foldername, filename)
+                destination = os.path.join(top_dir, filename)
+
+                # Check if a file with the same name already exists in the top-level directory
+                if os.path.exists(destination):
+                    base, ext = os.path.splitext(filename)
+                    counter = 1
+                    new_destination = os.path.join(top_dir, f"{base}_{counter}{ext}")
+
+                    # Find a new destination path that does not exist yet
+                    while os.path.exists(new_destination):
+                        counter += 1
+                        new_destination = os.path.join(top_dir, f"{base}_{counter}{ext}")
+
+                    destination = new_destination
+
+                # Move file
+                shutil.move(source, destination)
+                print(f"Moved: {source} to {destination}")
+
+            # Add the foldername to the list of directories to delete
+            directories_to_delete.append(foldername)
+
+    # Delete the old subdirectories
+    for directory in directories_to_delete:
+        os.rmdir(directory)
+        print(f"Deleted: {directory}")
+
+
 for top_dir in os.listdir(root_dir):
+    path_to_jars = os.path.join(root_dir, top_dir)
+    flatten_dir(path_to_jars)
 
-
-
-    # Walk through the directory
-    for root, dirs, files in os.walk(os.path.join(root_dir, top_dir)):
-        for file in files:
-            # Construct the full file path
-            full_file_path = os.path.join(root, file)
-
-            # Extract the version number from the file name
-            base_name, ext = os.path.splitext(file)
-            name_parts = base_name.split("_")
-            new_version_number = name_parts[1] + "-" + top_dir
-            new_base_name = name_parts[0] + "_" + new_version_number
-
-            # Construct the new file name
-            new_file_name = new_base_name + ext
-
-            # Construct the new file path
-            new_file_path = os.path.join(top_dir, new_file_name)
-
-            # Move the file to the top-level directory with the new name
-            shutil.move(full_file_path, new_file_path)
-
-    # Optionally, remove the subdirectories if they are now empty
-    for root, dirs, _ in os.walk(top_dir, topdown=False):
-        for dir in dirs:
-            dir_path = os.path.join(root, dir)
-            if not os.listdir(dir_path):
-                os.rmdir(dir_path)
+    for file in os.listdir(path_to_jars):
+        if "_2.12" in file and top_dir not in file:
+            old_file_path = os.path.join(path_to_jars, file)
+            name_parts = file.split("_2.12")
+            if name_parts[1].startswith(".") or name_parts[1].startswith("-"):
+                sep_char = ""
+            else:
+                sep_char = "-"
+            new_file = f"{name_parts[0]}_2.12-{top_dir}{sep_char}{name_parts[1]}"
+            new_file_path = os.path.join(path_to_jars, new_file)
+            shutil.move(old_file_path, new_file_path)
