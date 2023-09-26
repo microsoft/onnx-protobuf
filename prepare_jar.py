@@ -1,9 +1,9 @@
-import shutil
 import os
 import subprocess
 import re
 import getpass
 import glob
+import shutil
 
 current_username = getpass.getuser()
 
@@ -95,16 +95,24 @@ if not jar_files:
 # We will use the first found jar file for signing
 jar_file_to_sign = jar_files[0]
 
+
+print(f"signing jar: {jar_file_to_sign}")
+
+os.remove(jar_file_to_sign + '.asc')
+os.remove(jar_file_to_sign + '.asc.sha1')
+os.remove(jar_file_to_sign + '.asc.md5')
+
+
 # Step 4: Sign the jar
 sign_command = ['gpg', '--batch', '--yes', '--pinentry-mode', 'loopback', '--passphrase-file', password_file, '-ab', jar_file_to_sign]
 subprocess.run(sign_command, check=True)
 
 # Step 5: Create checksums of the signature file
-signature_file = jar_file_to_sign + '.asc'
-checksum_sha1_command = ['sha1sum', signature_file, '>', signature_file + '.sha1']
-checksum_md5_command = ['md5sum', signature_file, '>', signature_file + '.md5']
-
-subprocess.run(' '.join(checksum_sha1_command), shell=True, check=True)
-subprocess.run(' '.join(checksum_md5_command), shell=True, check=True)
+signature_files = [jar_file_to_sign, jar_file_to_sign + '.asc']
+for signature_file in signature_files:
+    checksum_sha1_command = ['sha1sum', signature_file, '>', signature_file + '.sha1']
+    checksum_md5_command = ['md5sum', signature_file, '>', signature_file + '.md5']
+    subprocess.run(' '.join(checksum_sha1_command), shell=True, check=True)
+    subprocess.run(' '.join(checksum_md5_command), shell=True, check=True)
 
 print('Finished!')

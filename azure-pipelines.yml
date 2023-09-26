@@ -40,7 +40,8 @@ steps:
     pip install shutil
     python prepare_jar.py
     cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12
-    tree .
+    cd *
+    ls -la
 
   #- task: EsrpCodeSigning@3
 #  inputs:
