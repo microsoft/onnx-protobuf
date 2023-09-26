@@ -1,7 +1,13 @@
-import os
 import shutil
+import os
+import subprocess
+import re
+import getpass
+import glob
 
-root_dir = "/home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12"
+current_username = getpass.getuser()
+
+root_dir = f"/home/{current_username}/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12"
 
 
 def flatten_dir(top_dir):
@@ -58,3 +64,47 @@ for top_dir in os.listdir(root_dir):
             new_file = f"{name_parts[0]}_2.12-{top_dir}{sep_char}{name_parts[1]}"
             new_file_path = os.path.join(path_to_jars, new_file)
             shutil.move(old_file_path, new_file_path)
+
+
+
+# Step 1: Look for gpg password file and secret key file in the /tmp dir
+gpg_files = os.listdir('/tmp')
+password_file = None
+secret_key_file = None
+
+for file in gpg_files:
+    if re.match(r'keypw\d+\.txt$', file):
+        password_file = os.path.join('/tmp', file)
+    elif re.match(r'secret\d+\.asc$', file):
+        secret_key_file = os.path.join('/tmp', file)
+
+if password_file is None or secret_key_file is None:
+    raise Exception('GPG password file or secret key file not found.')
+
+# Step 2: Import the gpg key
+import_command = ['gpg', '--batch', '--yes', '--passphrase-file', password_file, '--import', secret_key_file]
+subprocess.run(import_command, check=True)
+
+# Step 3: Get the current username and construct the jar file path
+jar_file_pattern = f"/home/{current_username}/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12/*/onnx-protobuf_2.12-*.jar"
+jar_files = [f for f in glob.glob(jar_file_pattern)]
+
+if not jar_files:
+    raise Exception('Jar file not found.')
+
+# We will use the first found jar file for signing
+jar_file_to_sign = jar_files[0]
+
+# Step 4: Sign the jar
+sign_command = ['gpg', '--batch', '--yes', '--pinentry-mode', 'loopback', '--passphrase-file', password_file, '-ab', jar_file_to_sign]
+subprocess.run(sign_command, check=True)
+
+# Step 5: Create checksums of the signature file
+signature_file = jar_file_to_sign + '.asc'
+checksum_sha1_command = ['sha1sum', signature_file, '>', signature_file + '.sha1']
+checksum_md5_command = ['md5sum', signature_file, '>', signature_file + '.md5']
+
+subprocess.run(' '.join(checksum_sha1_command), shell=True, check=True)
+subprocess.run(' '.join(checksum_md5_command), shell=True, check=True)
+
+print('Finished!')

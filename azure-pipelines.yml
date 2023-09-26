@@ -40,40 +40,7 @@ steps:
     pip install shutil
     python prepare_jar.py
     cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12
-    find . -mindepth 2 -type f -exec mv -t . --backup=numbered '{}' +
-    find . -mindepth 1 -type d -empty -delete
-    cd /tmp
-    sudo find /tmp -name 'secret*.asc' -print | sort | head -n 1 | xargs gpg --batch --yes --passphrase-file /tmp/keypw*.txt  --import
-    cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12
-    
-    
-    echo "HERE1"
-    ls
-
-    patterns=("onnx-protobuf_2.12-*" "onnx-protobuf_2.12-*-javadoc*" "onnx-protobuf_2.12-*-sources*")
-    
-    # Temporary password file pattern
-    password_file_pattern="/tmp/keypw*.txt"
-    
-    # Process each pattern
-    for pattern in "${patterns[@]}"
-    do
-      # Remove .asc files
-      rm "$pattern.asc"
-      
-      # Sign the files matching the pattern with gpg
-      gpg --batch --yes --pinentry-mode loopback --passphrase-file "$password_file_pattern" -ab $pattern
-      
-      # Compute sha1sum and md5sum for the .asc files
-      for file in $pattern.asc
-      do
-        sha1sum "$file" > "$file.sha1"
-        md5sum "$file" > "$file.md5"
-      done
-    done
-
-    echo "HERE2"
-    ls
+    tree .
 
   #- task: EsrpCodeSigning@3
 #  inputs:
