@@ -87,7 +87,7 @@ subprocess.run(import_command, check=True)
 
 # Step 3: Get the current username and construct the jar file path
 jar_file_pattern = f"/home/{current_username}/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12/*/onnx-protobuf_2.12-*.jar"
-jar_files = [f for f in glob.glob(jar_file_pattern)]
+jar_files = [f for f in glob.glob(jar_file_pattern) if ("sources" not in f and "javadoc" not in f)]
 
 if not jar_files:
     raise Exception('Jar file not found.')
