@@ -96,9 +96,9 @@ if not jar_files:
 jar_file_to_sign = jar_files[0]
 
 
-print("Old signature")
-sign_command = ['gpg', '--verify', jar_file_to_sign + '.asc']
-subprocess.run(' '.join(sign_command), shell=True, check=True)
+# print("Old signature")
+# sign_command = ['gpg', '--verify', jar_file_to_sign + '.asc']
+# subprocess.run(' '.join(sign_command), shell=True, check=True)
 
 
 print(f"signing jar: {jar_file_to_sign}")
