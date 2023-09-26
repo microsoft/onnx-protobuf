@@ -96,11 +96,19 @@ if not jar_files:
 jar_file_to_sign = jar_files[0]
 
 
+print("Old signature")
+sign_command = ['gpg', '--verify', jar_file_to_sign + '.asc']
+subprocess.run(' '.join(sign_command), shell=True, check=True)
+
+
 print(f"signing jar: {jar_file_to_sign}")
 
 os.remove(jar_file_to_sign + '.asc')
 os.remove(jar_file_to_sign + '.asc.sha1')
 os.remove(jar_file_to_sign + '.asc.md5')
+
+
+
 
 
 # Step 4: Sign the jar
@@ -114,5 +122,12 @@ for signature_file in signature_files:
     checksum_md5_command = ['md5sum', signature_file, '>', signature_file + '.md5']
     subprocess.run(' '.join(checksum_sha1_command), shell=True, check=True)
     subprocess.run(' '.join(checksum_md5_command), shell=True, check=True)
+
+
+print('New verify:')
+
+sign_command = ['gpg', '--verify', jar_file_to_sign + '.asc']
+subprocess.run(' '.join(sign_command), shell=True, check=True)
+
 
 print('Finished!')
