@@ -8,9 +8,12 @@ import scala.xml.{Node => XmlNode, NodeSeq => XmlNodeSeq, _}
 
 name := "onnx-protobuf"
 ThisBuild / organization := "com.microsoft.azure"
-ThisBuild / scalaVersion := "2.12.15"
+// Default to Scala 2.13 for Spark 4.x compatibility
+ThisBuild / scalaVersion := "2.13.12"
+// Cross-publish for Spark 3.x users on Scala 2.12
+ThisBuild / crossScalaVersions := Seq("2.12.15", "2.13.12")
 
-val scalaMajorVersion = 2.12
+val scalaMajorVersion = 2.13
 
 def pomPostFunc(node: XmlNode): scala.xml.Node = {
   new RuleTransformer(new RewriteRule {

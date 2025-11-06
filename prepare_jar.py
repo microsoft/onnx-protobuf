@@ -4,10 +4,13 @@ import re
 import getpass
 import glob
 import shutil
+from pathlib import Path
 
 current_username = getpass.getuser()
 
-root_dir = f"/home/{current_username}/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12"
+# Resolve Ivy local root cross-platform; allow override via IVY2_LOCAL
+_ivy_local_root = Path(os.environ.get("IVY2_LOCAL", str(Path.home() / ".ivy2" / "local")))
+base_dir = str(_ivy_local_root / "com.microsoft.azure")
 
 
 def flatten_dir(top_dir):
@@ -45,26 +48,38 @@ def flatten_dir(top_dir):
 
     # Delete the old subdirectories
     for directory in directories_to_delete:
-        os.rmdir(directory)
-        print(f"Deleted: {directory}")
+        try:
+            os.rmdir(directory)
+            print(f"Deleted: {directory}")
+        except OSError:
+            pass
 
 
-for top_dir in os.listdir(root_dir):
-    path_to_jars = os.path.join(root_dir, top_dir)
-    flatten_dir(path_to_jars)
+# Normalize layout and filenames for all scala binary versions we publish
+module_dirs = [
+    d for d in os.listdir(base_dir)
+    if d.startswith("onnx-protobuf_") and os.path.isdir(os.path.join(base_dir, d))
+]
 
-    for file in os.listdir(path_to_jars):
-        if "_2.12" in file and top_dir not in file:
-            old_file_path = os.path.join(path_to_jars, file)
-            name_parts = file.split("_2.12")
-            if name_parts[1].startswith(".") or name_parts[1].startswith("-"):
-                sep_char = ""
-            else:
-                sep_char = "-"
-            new_file = f"{name_parts[0]}_2.12-{top_dir}{sep_char}{name_parts[1]}"
-            new_file_path = os.path.join(path_to_jars, new_file)
-            shutil.move(old_file_path, new_file_path)
+for module_dir in module_dirs:
+    module_path = os.path.join(base_dir, module_dir)
+    scala_suffix = module_dir.split("_", 1)[1] if "_" in module_dir else ""
+    for version_dir in os.listdir(module_path):
+        path_to_jars = os.path.join(module_path, version_dir)
+        if not os.path.isdir(path_to_jars):
+            continue
+        flatten_dir(path_to_jars)
 
+        # Ensure file names include the version suffix
+        for file in os.listdir(path_to_jars):
+            if f"_{scala_suffix}" in file and version_dir not in file:
+                old_file_path = os.path.join(path_to_jars, file)
+                name_parts = file.split(f"_{scala_suffix}")
+                sep_char = "" if (len(name_parts) > 1 and (name_parts[1].startswith(".") or name_parts[1].startswith("-"))) else "-"
+                new_file = f"{name_parts[0]}_{scala_suffix}-{version_dir}{sep_char}{name_parts[1] if len(name_parts) > 1 else ''}"
+                new_file_path = os.path.join(path_to_jars, new_file)
+                shutil.move(old_file_path, new_file_path)
+                print(f"Renamed: {old_file_path} -> {new_file_path}")
 
 
 # Step 1: Look for gpg password file and secret key file in the /tmp dir
@@ -85,49 +100,40 @@ if password_file is None or secret_key_file is None:
 import_command = ['gpg', '--batch', '--yes', '--passphrase-file', password_file, '--import', secret_key_file]
 subprocess.run(import_command, check=True)
 
-# Step 3: Get the current username and construct the jar file path
-jar_file_pattern = f"/home/{current_username}/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12/*/onnx-protobuf_2.12-*.jar"
-jar_files = [f for f in glob.glob(jar_file_pattern) if ("sources" not in f and "javadoc" not in f)]
+# Step 3: Find all main jars (exclude -sources/-javadoc) across 2.12 and 2.13 modules
+jar_files = []
+for module_dir in module_dirs:
+    module_path = os.path.join(base_dir, module_dir)
+    candidates = glob.glob(os.path.join(module_path, '*', f'{module_dir}-*.jar'))
+    for f in candidates:
+        if ('-sources.jar' in f) or ('-javadoc.jar' in f):
+            continue
+        jar_files.append(f)
 
 if not jar_files:
-    raise Exception('Jar file not found.')
+    raise Exception('Jar file(s) not found.')
 
-# We will use the first found jar file for signing
-jar_file_to_sign = jar_files[0]
+# Step 4: Sign each jar and create checksums
+for jar_file_to_sign in jar_files:
+    print(f"signing jar: {jar_file_to_sign}")
+    for ext in ['.asc', '.asc.sha1', '.asc.md5']:
+        try:
+            os.remove(jar_file_to_sign + ext)
+        except FileNotFoundError:
+            pass
 
+    sign_command = ['gpg', '--batch', '--yes', '--pinentry-mode', 'loopback', '--passphrase-file', password_file, '-ab', jar_file_to_sign]
+    subprocess.run(sign_command, check=True)
 
-# print("Old signature")
-# sign_command = ['gpg', '--verify', jar_file_to_sign + '.asc']
-# subprocess.run(' '.join(sign_command), shell=True, check=True)
+    for signature_file in [jar_file_to_sign, jar_file_to_sign + '.asc']:
+        checksum_sha1_command = ['sha1sum', signature_file, '>', signature_file + '.sha1']
+        checksum_md5_command = ['md5sum', signature_file, '>', signature_file + '.md5']
+        subprocess.run(' '.join(checksum_sha1_command), shell=True, check=True)
+        subprocess.run(' '.join(checksum_md5_command), shell=True, check=True)
 
-
-print(f"signing jar: {jar_file_to_sign}")
-
-os.remove(jar_file_to_sign + '.asc')
-os.remove(jar_file_to_sign + '.asc.sha1')
-os.remove(jar_file_to_sign + '.asc.md5')
-
-
-
-
-
-# Step 4: Sign the jar
-sign_command = ['gpg', '--batch', '--yes', '--pinentry-mode', 'loopback', '--passphrase-file', password_file, '-ab', jar_file_to_sign]
-subprocess.run(sign_command, check=True)
-
-# Step 5: Create checksums of the signature file
-signature_files = [jar_file_to_sign, jar_file_to_sign + '.asc']
-for signature_file in signature_files:
-    checksum_sha1_command = ['sha1sum', signature_file, '>', signature_file + '.sha1']
-    checksum_md5_command = ['md5sum', signature_file, '>', signature_file + '.md5']
-    subprocess.run(' '.join(checksum_sha1_command), shell=True, check=True)
-    subprocess.run(' '.join(checksum_md5_command), shell=True, check=True)
-
-
-print('New verify:')
-
-sign_command = ['gpg', '--verify', jar_file_to_sign + '.asc']
-subprocess.run(' '.join(sign_command), shell=True, check=True)
+    print('Verify signature:')
+    sign_command = ['gpg', '--verify', jar_file_to_sign + '.asc']
+    subprocess.run(' '.join(sign_command), shell=True, check=True)
 
 
 print('Finished!')

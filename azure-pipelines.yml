@@ -11,6 +11,8 @@ pool:
 
 variables:
   isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+  # Default Ivy local root; override for tests if needed
+  ivy2Local: '/home/vsts/.ivy2/local'
 
 steps:
 - task: AzureKeyVault@1
@@ -23,7 +25,7 @@ steps:
     jdkArchitectureOption: 'x64'
     jdkSourceOption: 'PreInstalled'
 - bash: |
-    sbt publishLocalSigned
+    sbt +publishLocalSigned
   env:
     NEXUS-UN: $(nexus-un)
     NEXUS-PW: $(nexus-pw)
@@ -37,11 +39,10 @@ steps:
     addToPath: true
 - bash: |
     python -m pip install --upgrade pip
-    pip install shutil
     python prepare_jar.py
-    cd /home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.12
-    cd *
-    ls -la
+    for d in "$IVY2_LOCAL"/com.microsoft.azure/onnx-protobuf_*/*; do echo "Contents of $d"; ls -la "$d"; done
+  env:
+    IVY2_LOCAL: $(ivy2Local)
 
   #- task: EsrpCodeSigning@3
 #  inputs:
@@ -86,3 +87,16 @@ steps:
     MainPublisher: 'synapseml'
     DomainTenantId: '72f988bf-86f1-41af-91ab-2d7cd011db47'
   displayName: 'ESRP Publish Package'
+
+- task: EsrpRelease@3
+  inputs:
+    ConnectedServiceName: 'DataScienceESRPRelease'
+    Intent: 'PackageDistribution'
+    ContentType: 'Maven'
+    PackageLocation: '/home/vsts/.ivy2/local/com.microsoft.azure/onnx-protobuf_2.13'
+    Owners: 'admukund@microsoft.com,richwyd@microsoft.com,taniaarya@microsoft.com,alsavelv@microsoft.com,marcozo@microsoft.com,romanbat@microsoft.com'
+    Approvers: 'romanbat@microsoft.com,markus.weimer@microsoft.com,negust@microsoft.com'
+    ServiceEndpointUrl: 'https://api.esrp.microsoft.com'
+    MainPublisher: 'synapseml'
+    DomainTenantId: '72f988bf-86f1-41af-91ab-2d7cd011db47'
+  displayName: 'ESRP Publish Package (2.13)'

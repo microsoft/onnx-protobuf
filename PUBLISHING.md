@@ -20,6 +20,6 @@ repository https://oss.sonatype.org/content/repositories/snapshots/.
 - Sbt clean and compile the project: `sbt clean` and `sbt compile`
 - Publish the package to the staging repository: `sbt publishSigned`
 - Sign the onnx-protobuf jar using gpg
-  - e.g., `gpg -ab onnx-protobuf\target\sonatype-staging\0.9.3\com\microsoft\azure\onnx-protobuf_2.12\0.9.3\onnx-protobuf_2.12-0.9.3.jar`
+  - e.g., `gpg -ab onnx-protobuf\target\sonatype-staging\0.9.3\com\microsoft\azure\onnx-protobuf_<SCALA_BINARY>\0.9.3\onnx-protobuf_<SCALA_BINARY>-0.9.3.jar`
 - Release the bundle to sonatype release and central repository: `sbt sonatypeBundleRelease` 
 - Push the tag to git origin repo: `git push origin v0.9.3`
