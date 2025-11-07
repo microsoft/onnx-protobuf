@@ -120,7 +120,7 @@ for jar_file_to_sign in jar_files:
         try:
             os.remove(jar_file_to_sign + ext)
         except FileNotFoundError:
-            pass
+            print(f"Note: {jar_file_to_sign + ext} not found (skipping)")
 
     sign_command = ['gpg', '--batch', '--yes', '--pinentry-mode', 'loopback', '--passphrase-file', password_file, '-ab', jar_file_to_sign]
     subprocess.run(sign_command, check=True)
