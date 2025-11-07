@@ -51,8 +51,8 @@ def flatten_dir(top_dir):
         try:
             os.rmdir(directory)
             print(f"Deleted: {directory}")
-        except OSError:
-            pass
+        except OSError as e:
+            print(f"Warning: Could not delete {directory}: {e}")
 
 
 # Normalize layout and filenames for all scala binary versions we publish
