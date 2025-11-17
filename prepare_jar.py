@@ -4,6 +4,7 @@ import re
 import getpass
 import glob
 import shutil
+import hashlib
 from pathlib import Path
 
 current_username = getpass.getuser()
@@ -82,6 +83,25 @@ for module_dir in module_dirs:
                 print(f"Renamed: {old_file_path} -> {new_file_path}")
 
 
+def compute_digest(file_path, algorithm):
+    hasher = hashlib.new(algorithm)
+    with open(file_path, "rb") as handle:
+        while True:
+            chunk = handle.read(1024 * 1024)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def write_digest(file_path, algorithm):
+    digest = compute_digest(file_path, algorithm)
+    digest_path = f"{file_path}.{algorithm}"
+    with open(digest_path, "w", encoding="utf-8") as handle:
+        handle.write(digest + "\n")
+    print(f"Wrote {algorithm} for {file_path}: {digest}")
+
+
 # Step 1: Look for gpg password file and secret key file in the /tmp dir
 gpg_files = os.listdir('/tmp')
 password_file = None
@@ -116,7 +136,7 @@ if not jar_files:
 # Step 4: Sign each jar and create checksums
 for jar_file_to_sign in jar_files:
     print(f"signing jar: {jar_file_to_sign}")
-    for ext in ['.asc', '.asc.sha1', '.asc.md5']:
+    for ext in ['.sha1', '.md5', '.asc', '.asc.sha1', '.asc.md5']:
         try:
             os.remove(jar_file_to_sign + ext)
         except FileNotFoundError:
@@ -126,10 +146,8 @@ for jar_file_to_sign in jar_files:
     subprocess.run(sign_command, check=True)
 
     for signature_file in [jar_file_to_sign, jar_file_to_sign + '.asc']:
-        checksum_sha1_command = ['sha1sum', signature_file, '>', signature_file + '.sha1']
-        checksum_md5_command = ['md5sum', signature_file, '>', signature_file + '.md5']
-        subprocess.run(' '.join(checksum_sha1_command), shell=True, check=True)
-        subprocess.run(' '.join(checksum_md5_command), shell=True, check=True)
+        write_digest(signature_file, 'sha1')
+        write_digest(signature_file, 'md5')
 
     print('Verify signature:')
     sign_command = ['gpg', '--verify', jar_file_to_sign + '.asc']
